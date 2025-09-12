@@ -49,10 +49,6 @@ public class AccountEntity extends AuditableEntity {
 	@JoinColumn(name = "client_id", referencedColumnName = "client_id", insertable = false, updatable = false)
 	private CustomerEntity customer;
 
-	/*@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "client_id", updatable = false)
-	private CustomerEntity customer;*/
-
 	@Column(name = "is_deleted")
 	private Boolean isDeleted = false;
 

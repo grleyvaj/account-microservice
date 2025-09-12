@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS "accounts" (
     "updated_at" TIMESTAMP,
     "deleted_at" TIMESTAMP,
 
-    CONSTRAINT "fk_accounts_customer" FOREIGN KEY ("client_id") REFERENCES "customers"("client_id")
+    CONSTRAINT "fk_accounts_customer" FOREIGN KEY ("client_id") REFERENCES "customers"("client_id"),
+    CONSTRAINT "uk_accounts_account_number" UNIQUE ("account_number")
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_accounts_account_number" ON "accounts"("account_number");
 CREATE INDEX IF NOT EXISTS "idx_accounts_client_id" ON "accounts"("client_id");
 CREATE INDEX IF NOT EXISTS "idx_accounts_type" ON "accounts"("account_type");

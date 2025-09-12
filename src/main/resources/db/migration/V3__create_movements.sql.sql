@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS "movements" (
     "execution_date" TIMESTAMP NOT NULL,
     "movement_type" VARCHAR(255) NOT NULL,
     "amount" NUMERIC(20,5) NOT NULL,
+    "balance_before" NUMERIC(20,5) NOT NULL,
     "balance_after" NUMERIC(20,5) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "is_deleted" BOOLEAN NOT NULL DEFAULT false,

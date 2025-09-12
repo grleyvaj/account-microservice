@@ -8,13 +8,13 @@ import com.devsu.account_service.domain.repository.AccountRepository;
 import com.devsu.account_service.domain.use_cases.account.create.AccountCreateInput;
 import com.devsu.account_service.domain.use_cases.account.update.AccountUpdateInput;
 import com.devsu.account_service.infrastructure.entity.AccountEntity;
-import com.devsu.account_service.infrastructure.entity.AccountEntityCreator;
 import com.devsu.account_service.infrastructure.persistence.JpaAccountRepository;
-import com.devsu.account_service.infrastructure.persistence.JpaCustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -22,23 +22,9 @@ import java.util.Optional;
 public class PostgresAccountRepository implements AccountRepository {
 
 	private final JpaAccountRepository jpaAccountRepository;
-	private final JpaCustomerRepository jpaCustomerRepository;
-	private final AccountEntityCreator accountEntityCreator;
 	private final Mapper<AccountCreateInput, AccountEntity> accountEntityMapper;
 	private final Mapper<AccountEntity, Account> accountMapper;
 	private final Mapper<AccountEntity, AccountInfo> accountInfoMapper;
-
-	/*@Override
-	public Account create(AccountCreateInput createInput) throws ResourceNotFoundException {
-		CustomerEntity customerEntity = this.jpaCustomerRepository.findByClientIdAndIsDeletedFalse(createInput.getClientId())
-		  .orElseThrow(() -> new ResourceNotFoundException("Client %s not found".formatted(createInput.getClientId())));
-
-		AccountEntity accountEntity = this.jpaAccountRepository.save(
-		  this.accountEntityCreator.create(customerEntity, createInput)
-		);
-
-		return this.accountMapper.map(accountEntity);
-	}*/
 
 	@Override
 	public Account create(AccountCreateInput createInput) {
@@ -59,6 +45,12 @@ public class PostgresAccountRepository implements AccountRepository {
 	public Optional<AccountInfo> findById(String accountId) {
 		return this.jpaAccountRepository.findByIdAndIsDeletedFalse(accountId)
 		  .map(this.accountInfoMapper::map);
+	}
+
+	@Override
+	public Optional<Account> findActiveById(String accountId) {
+		return this.jpaAccountRepository.findByIdAndIsActiveTrueAndIsDeletedFalse(accountId)
+		  .map(this.accountMapper::map);
 	}
 
 	@Override
@@ -96,6 +88,23 @@ public class PostgresAccountRepository implements AccountRepository {
 		return this.accountInfoMapper.map(
 		  this.jpaAccountRepository.save(accountEntity)
 		);
+	}
+
+	@Override
+	public void updateAvailableBalance(String accountId, BigDecimal availableBalance) {
+		this.jpaAccountRepository.updateAvailableBalance(
+		  accountId,
+		  availableBalance,
+		  LocalDateTime.now()
+		);
+	}
+
+	@Override
+	public List<Account> findActiveAll(String clientId) {
+		return this.jpaAccountRepository.findByClientIdAndIsActiveTrueAndIsDeletedFalse(clientId)
+		  .stream()
+		  .map(this.accountMapper::map)
+		  .toList();
 	}
 
 }

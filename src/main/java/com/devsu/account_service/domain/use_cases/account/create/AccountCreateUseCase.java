@@ -19,4 +19,5 @@ public class AccountCreateUseCase {
 
 		return new AccountInfo(customer, this.accountRepository.create(createInput));
 	}
+
 }

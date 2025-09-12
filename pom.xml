@@ -29,6 +29,8 @@
 	<properties>
 		<java.version>21</java.version>
 		<spring-doc.version>2.7.0</spring-doc.version>
+		<open-api.version>1.7.0</open-api.version>
+		<ulid.version>5.2.3</ulid.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -59,6 +61,10 @@
 
 		<!--	Migrations	-->
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
@@ -73,6 +79,13 @@
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${spring-doc.version}</version>
+		</dependency>
+
+		<!--	ULID generator	-->
+		<dependency>
+			<groupId>com.github.f4b6a3</groupId>
+			<artifactId>ulid-creator</artifactId>
+			<version>${ulid.version}</version>
 		</dependency>
 
 		<!--	Others	-->
@@ -105,6 +118,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<excludes>
 						<exclude>

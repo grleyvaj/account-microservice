@@ -1,0 +1,54 @@
+server:
+  port: ${ENV_PORT:8082}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db_account_test}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER-CLASS-NAME:org.postgresql.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:none}
+    show-sql: ${SPRING_JPA_SHOW-SQL:true}
+    open-in-view: false
+  flyway:
+    enabled: true
+    table: migrations
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+    mapper:
+      sort-properties-alphabetically: false
+  output:
+    ansi:
+      enabled: ALWAYS
+#  config:
+#    import: optional:classpath:${OPENAPI_LANGUAGE:i18n/swagger_messages.properties}
+
+openapi:
+  servers:
+    - url: http://localhost:${ENV_PORT:8082}
+      description: Develop server
+    - url: http://staging:${ENV_PORT:8082}
+      description: UAT server
+    - url: http://prod:${ENV_PORT:8082}
+      description: Production server
+  info:
+    title: ACCOUNT MICROSERVICE
+    contact:
+      name: Support Team
+      email: leyvajerezgr@gmail.com
+    description: Microservice for manage account and it's movements
+  language: ${OPENAPI_LANGUAGE:i18n/swagger_messages.properties} # use to ES: "i18n/swagger_messages_es" and for EN: swagger_messages
+
+spring-doc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+    resolve-schema-properties: true
+  swagger-ui:
+    path: /swagger-ui.html
+    displayRequestDuration: true
+    tagsSorter: alpha
+    resolve-schema-properties: true

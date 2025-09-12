@@ -14,6 +14,7 @@ public class MovementEntityMapper implements Mapper<MovementCreateInput, Movemen
 
 		return (MovementEntity)new MovementEntity()
 		  .setId(Generator.ulid())
+		  .setClientId(createInput.getClientId())
 		  .setAccountId(createInput.getAccountId())
 		  .setExecutionDate(createInput.getExecutionDate())
 		  .setMovementType(createInput.getType())

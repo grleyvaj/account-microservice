@@ -37,7 +37,8 @@ public class MovementCreateUseCase {
 
 		createInput
 		  .addBalanceBefore(beforeBalance)
-		  .addBalanceAfter(availableBalance);
+		  .addBalanceAfter(availableBalance)
+		  .addClientId(account.getClientId());
 
 		this.accountRepository.updateAvailableBalance(createInput.getAccountId(), availableBalance);
 		return this.movementRepository.create(createInput);

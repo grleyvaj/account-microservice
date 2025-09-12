@@ -40,13 +40,13 @@ public interface ReportsApi {
 		in = ParameterIn.QUERY,
 		name = "client",
 		required = true,
-		description = "${customer.id.description}",
+		description = "Identification of client",
 		example = "01K4W28848S15638N34TT76CPT",
 		schema = @Schema(type = "string", format = "ulid", example = "01K4W28848S15638N34TT76CPT")
 	  ) String client,
-	  @Parameter(in = ParameterIn.QUERY, name = "fromDate", description = "${api.op.paginatedList.parameter.fromDate.description}", example = "2025-04-01T10:15:30")
+	  @Parameter(in = ParameterIn.QUERY, name = "from_date", description = "${api.op.paginatedList.parameter.fromDate.description}", example = "2025-04-01T10:15:30")
 	  @RequestParam(value = "from_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-	  @Parameter(in = ParameterIn.QUERY, name = "toDate", description = "${api.op.paginatedList.parameter.toDate.description}", example = "2025-04-30T10:15:30")
+	  @Parameter(in = ParameterIn.QUERY, name = "to_date", description = "${api.op.paginatedList.parameter.toDate.description}", example = "2025-04-30T10:15:30")
 	  @RequestParam(value = "to_date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate
 	) throws ResourceNotFoundException;
 

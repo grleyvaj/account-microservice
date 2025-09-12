@@ -40,14 +40,15 @@ public class PostgresAccountRepository implements AccountRepository {
 		return this.jpaAccountRepository.existsByAccountNumberAndIsDeletedFalse(number);
 	}
 
-	@Transactional(readOnly = true)
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<AccountInfo> findById(String accountId) {
 		return this.jpaAccountRepository.findByIdAndIsDeletedFalse(accountId)
 		  .map(this.accountInfoMapper::map);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<Account> findActiveById(String accountId) {
 		return this.jpaAccountRepository.findByIdAndIsActiveTrueAndIsDeletedFalse(accountId)
 		  .map(this.accountMapper::map);

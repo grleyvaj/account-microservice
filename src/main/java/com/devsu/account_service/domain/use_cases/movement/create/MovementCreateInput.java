@@ -16,6 +16,7 @@ public class MovementCreateInput {
 	private final MovementType type;
 	private final BigDecimal amount;
 
+	private String clientId;
 	private BigDecimal balanceBefore;
 	private BigDecimal balanceAfter;
 
@@ -26,6 +27,11 @@ public class MovementCreateInput {
 
 	public MovementCreateInput addBalanceAfter(BigDecimal balanceAfter) {
 		this.balanceAfter = balanceAfter;
+		return this;
+	}
+
+	public MovementCreateInput addClientId(String clientId) {
+		this.clientId = clientId;
 		return this;
 	}
 

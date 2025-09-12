@@ -43,8 +43,11 @@ public class MovementEntity extends AuditableEntity {
 	private String accountId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "account_id", referencedColumnName = "client_id", insertable = false, updatable = false)
+	@JoinColumn(name = "account_id", referencedColumnName = "id", insertable = false, updatable = false)
 	private AccountEntity account;
+
+	@Column(name = "client_id", nullable = false)
+	private String clientId;
 
 	@Column(name = "is_deleted")
 	private Boolean isDeleted = false;

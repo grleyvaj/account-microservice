@@ -18,27 +18,35 @@ public class MovementSpecs {
 	  LocalDateTime to
 	) {
 		return (root, query, cb) -> {
-			// Evitar duplicados al hacer joins en paginaciones
+			// Evitar duplicados al hacer joins/fetch
+			query.distinct(true);
+
+			// fetch para evitar N+1 (solo lectura)
 			root.fetch("account", JoinType.LEFT);
 
+			// joins para construir predicados
 			Join<MovementEntity, AccountEntity> accountJoin = root.join("account", JoinType.INNER);
 			Join<AccountEntity, CustomerEntity> customerJoin = accountJoin.join("customer", JoinType.INNER);
 
 			var predicates = cb.conjunction();
 
+			// filtros "isDeleted"
 			predicates = cb.and(predicates, cb.isFalse(root.get("isDeleted")));
 			predicates = cb.and(predicates, cb.isFalse(accountJoin.get("isDeleted")));
 			predicates = cb.and(predicates, cb.isFalse(customerJoin.get("isDeleted")));
 
+			// Filtrar por clientId -> el clientId corresponde al customer (no al account)
 			if (Objects.nonNull(clientId) && !clientId.isBlank()) {
-				predicates = cb.and(predicates, cb.equal(accountJoin.get("clientId"), clientId));
+				predicates = cb.and(predicates, cb.equal(customerJoin.get("clientId"), clientId));
 			}
 
-			if (Objects.nonNull(from)) {
+			// Rangos de fecha (executionDate)
+			if (Objects.nonNull(from) && Objects.nonNull(to)) {
+				// between es inclusivo en JPA Criteria
+				predicates = cb.and(predicates, cb.between(root.get("executionDate"), from, to));
+			} else if (Objects.nonNull(from)) {
 				predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get("executionDate"), from));
-			}
-
-			if (Objects.nonNull(to)) {
+			} else if (Objects.nonNull(to)) {
 				predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get("executionDate"), to));
 			}
 

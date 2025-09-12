@@ -18,6 +18,7 @@ public class AccountInfoMapper implements Mapper<AccountEntity, AccountInfo> {
 		  ),
 		  new Account(
 			accountEntity.getId(),
+			accountEntity.getClientId(),
 			accountEntity.getAccountNumber(),
 			accountEntity.getType(),
 			accountEntity.getHomeBalance(),

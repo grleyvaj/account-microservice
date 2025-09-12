@@ -10,6 +10,7 @@ public class AccountMapper implements Mapper<AccountEntity, Account> {
 
 		return new Account(
 		  accountEntity.getId(),
+		  accountEntity.getClientId(),
 		  accountEntity.getAccountNumber(),
 		  accountEntity.getType(),
 		  accountEntity.getHomeBalance(),

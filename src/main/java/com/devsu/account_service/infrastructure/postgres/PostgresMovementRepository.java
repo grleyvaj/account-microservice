@@ -48,7 +48,7 @@ public class PostgresMovementRepository implements MovementRepository {
 	public Report.ClientReport getClientReport(String clientId, LocalDateTime from, LocalDateTime to) {
 
 		Specification<MovementEntity> spec = MovementSpecs.byClientAndDateRange(clientId, from, to);
-		Sort sort = Sort.by(Sort.Order.desc("id"));
+		Sort sort = Sort.by(Sort.Order.asc("id"));
 
 		List<MovementEntity> movements = this.jpaMovementRepository.findAll(spec, sort);
 
@@ -79,17 +79,19 @@ public class PostgresMovementRepository implements MovementRepository {
 
 			List<Report.MovementReport> movementReports = movs
 			  .stream()
-			  .map(m -> new Report.MovementReport(
-				m.getExecutionDate(),
-				m.getMovementType().name(),
-				m.getAmount(),
-				m.getBalanceAfter()
+			  .map(movement -> new Report.MovementReport(
+				movement.getExecutionDate(),
+				movement.getMovementType().name(),
+				movement.getBalanceBefore(),
+				movement.getAmount(),
+				movement.getBalanceAfter()
 			  )).toList();
 
 			return new Report.AccountReport(
 			  accountNumber,
 			  accountEntity.getType().name(),
 			  accountEntity.getHomeBalance(),
+			  accountEntity.getAvailableBalance(),
 			  movementReports
 			);
 		}).toList();

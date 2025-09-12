@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class Account {
 
 	private final String id;
+	private final String clientId;
 	private final String number;
 	private final AccountType type;
 	private final BigDecimal homeBalance;

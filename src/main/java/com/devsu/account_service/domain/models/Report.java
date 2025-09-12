@@ -16,14 +16,16 @@ public class Report {
 	  String accountNumber,
 	  String accountType,
 	  BigDecimal initialBalance,
+	  BigDecimal availableBalance,
 	  List<MovementReport> movements
 	) {}
 
 	public record MovementReport(
 	  LocalDateTime date,
 	  String type,
-	  BigDecimal value,
-	  BigDecimal balance
+	  BigDecimal beforeBalance,
+	  BigDecimal amount,
+	  BigDecimal afterBalance
 	) {}
 
 }

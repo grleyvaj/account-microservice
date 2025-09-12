@@ -14,6 +14,11 @@ public class AccountCreateInput {
 	private final String number;
 	private final AccountType type;
 	private final BigDecimal homeBalance;
+	private BigDecimal availableBalance;
 	private String alias;
+
+	public BigDecimal getAvailableBalance() {
+		return homeBalance;
+	}
 
 }

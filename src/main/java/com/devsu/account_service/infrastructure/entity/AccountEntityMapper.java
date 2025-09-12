@@ -4,14 +4,19 @@ import com.devsu.account_service.application.contract.Mapper;
 import com.devsu.account_service.domain.helpers.Generator;
 import com.devsu.account_service.domain.use_cases.account.create.AccountCreateInput;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import static java.util.Objects.nonNull;
 
 public class AccountEntityMapper implements Mapper<AccountCreateInput, AccountEntity> {
 
 	@Override
 	public AccountEntity map(AccountCreateInput createInput) {
 		LocalDateTime current = LocalDateTime.now();
+
+		var available = nonNull(createInput.getAvailableBalance())
+		  ? createInput.getAvailableBalance()
+		  : createInput.getHomeBalance();
 
 		return (AccountEntity)new AccountEntity()
 		  .setId(Generator.ulid())
@@ -20,11 +25,10 @@ public class AccountEntityMapper implements Mapper<AccountCreateInput, AccountEn
 		  .setAlias(createInput.getAlias())
 		  .setType(createInput.getType())
 		  .setHomeBalance(createInput.getHomeBalance())
-		  .setAvailableBalance(BigDecimal.valueOf(0L))
+		  .setAvailableBalance(available)
 		  .setIsActive(Boolean.TRUE)
 		  .setCreatedAt(current)
 		  .setUpdatedAt(current);
-
 	}
 
 }

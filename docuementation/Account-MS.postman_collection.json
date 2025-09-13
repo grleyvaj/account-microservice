@@ -1,0 +1,6671 @@
+{
+	"info": {
+		"_postman_id": "15b37e05-5df9-4014-8182-beec7f975233",
+		"name": "Account-MS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13392925",
+		"_collection_link": "https://gloria-leyva-jerez.postman.co/workspace/DEVSU~977f47a1-de0e-4afd-a872-4291373ebf63/collection/13392925-15b37e05-5df9-4014-8182-beec7f975233?action=share&source=collection_link&creator=13392925"
+	},
+	"item": [
+		{
+			"name": "Create account",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Response body contains all required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    ",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData).to.have.property(\"customer\");",
+							"    pm.expect(jsonData).to.have.property(\"number\");",
+							"    pm.expect(jsonData).to.have.property(\"type\");",
+							"    pm.expect(jsonData).to.have.property(\"home_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"available_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"alias\");",
+							"    pm.expect(jsonData).to.have.property(\"state\", true);",
+							"});",
+							"",
+							"pm.test(\"Save account ID to collection variable\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"",
+							"    pm.collectionVariables.set(\"ACCOUNT_ID\", jsonData.id);",
+							"    pm.collectionVariables.set(\"ACCOUNT_NUMBER\", jsonData.number);",
+							"});",
+							"",
+							"pm.test(\"home_balance === available_balance (simple)\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.available_balance).to.eql(jsonData.home_balance);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{CLIENT_ID}}\",\n    \"number\": \"{{randomAccountNumber}}\",\n    \"type\": \"{{randomAccountType}}\",\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"home_balance\": \"{{randomBalance}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create account (Invalid client)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Message contains 'not found'\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message.toLowerCase()).to.include(\"not found\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{$randomUUID}}\",\n    \"number\": \"{{randomAccountNumber}}\",\n    \"type\": \"{{randomAccountType}}\",\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"home_balance\": \"{{randomBalance}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create account (Account number already exist)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Response contains 'errors' array\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"errors\");",
+							"    pm.expect(jsonData.errors).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"pm.test(\"Error contains correct code and message\", function () {",
+							"    const error = pm.response.json().errors[0];",
+							"    pm.expect(error.code).to.eql(\"account.number.notUnique\");",
+							"    pm.expect(error.title.toLowerCase()).to.include(\"number already exist\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{CLIENT_ID}}\",\n    \"number\": \"{{ACCOUNT_NUMBER}}\",\n    \"type\": \"{{randomAccountType}}\",\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"home_balance\": \"{{randomBalance}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get account detail",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response body contains all required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    ",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData).to.have.property(\"customer\");",
+							"    pm.expect(jsonData).to.have.property(\"number\");",
+							"    pm.expect(jsonData).to.have.property(\"type\");",
+							"    pm.expect(jsonData).to.have.property(\"home_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"available_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"alias\");",
+							"    pm.expect(jsonData).to.have.property(\"state\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{ACCOUNT_ID}}"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get account detail (Not found)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Message contains 'not found'\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message.toLowerCase()).to.include(\"not found\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "ANY"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create account (Alias optional)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Alias is either missing or null\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    if (jsonData.hasOwnProperty(\"alias\")) {",
+							"        pm.expect(jsonData.alias, \"Alias should be null\").to.be.null;",
+							"    } else {",
+							"        pm.expect(jsonData).to.not.have.property(\"alias\");",
+							"    }",
+							"});",
+							"",
+							"",
+							"pm.test(\"Save account ID to collection variable\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"",
+							"    pm.collectionVariables.set(\"ACCOUNT_NEW_ID\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{CLIENT_ID}}\",\n    \"number\": \"{{randomAccountNumber}}\",\n    \"type\": \"{{randomAccountType}}\",\n   // \"alias\": \"{{randomAccountAlias}}\",\n    \"home_balance\": \"{{randomBalance}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Update account (DynamicUpdate)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Alias is present and not blank\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"alias\");",
+							"    pm.expect(jsonData.alias).to.be.a(\"string\").and.not.empty;",
+							"    pm.expect(jsonData.alias.trim()).to.not.eql(\"\");",
+							"});",
+							"",
+							"pm.test(\"State is false\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"state\");",
+							"    pm.expect(jsonData.state).to.be.false;",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"state\": false\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{ACCOUNT_NEW_ID}}"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Fetches active accounts",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Accounts list has at least 1 element\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"accounts\");",
+							"    pm.expect(jsonData.accounts.length).to.be.above(0);",
+							"});",
+							"",
+							"pm.test(\"Each account has required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    jsonData.accounts.forEach(acc => {",
+							"        pm.expect(acc).to.have.property(\"number\");",
+							"        pm.expect(acc).to.have.property(\"type\");",
+							"        pm.expect(acc).to.have.property(\"home_balance\");",
+							"        pm.expect(acc).to.have.property(\"available_balance\");",
+							"        pm.expect(acc).to.have.property(\"alias\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts?client={{CLIENT_ID}}",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					],
+					"query": [
+						{
+							"key": "client",
+							"value": "{{CLIENT_ID}}"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create account (Active)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta",
+							"const accountTypes = [\"SAVINGS\", \"CURRENT\"];",
+							"const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];",
+							"",
+							"// Genera un número aleatorio grande (ejemplo: 10 dígitos)",
+							"function generateRandomNumber(length = 10) {",
+							"    let number = \"\";",
+							"    for (let i = 0; i < length; i++) {",
+							"        number += Math.floor(Math.random() * 10);",
+							"    }",
+							"    return number;",
+							"}",
+							"",
+							"// Genera un ULID-like simple basado en timestamp + random",
+							"function generateUlid() {",
+							"    return (",
+							"        Date.now().toString(36).toUpperCase() +",
+							"        Math.random().toString(36).substring(2, 10).toUpperCase()",
+							"    );",
+							"}",
+							"",
+							"// Opción 1: tipo + número aleatorio",
+							"const accountNumberSimple = `${accountType}-${generateRandomNumber(10)}`;",
+							"",
+							"// Opción 2: tipo + ULID (para garantizar unicidad)",
+							"const accountNumberUlid = `${accountType}-${generateUlid()}`;",
+							"",
+							"// Guardar en Postman variable (elige la que prefieras)",
+							"pm.variables.set(\"randomAccountNumber\", accountNumberUlid);",
+							"",
+							"// Generar nombres de alias aleatorios",
+							"const aliasNames = [",
+							"    \"My Checking Account\",",
+							"    \"My Savings Account\",",
+							"    \"My Payroll Account\",",
+							"    \"My Investment Account\",",
+							"    \"My Student Account\",",
+							"    \"My Business Account\",",
+							"];",
+							"",
+							"pm.variables.set(",
+							"    \"randomAccountAlias\",",
+							"    aliasNames[Math.floor(Math.random() * aliasNames.length)]",
+							");",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"",
+							"pm.variables.set(\"randomBalance\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Guardar tipo de cuenta aleatorio",
+							"pm.variables.set(\"randomAccountType\", accountType);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Response body contains all required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    ",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData).to.have.property(\"customer\");",
+							"    pm.expect(jsonData).to.have.property(\"number\");",
+							"    pm.expect(jsonData).to.have.property(\"type\");",
+							"    pm.expect(jsonData).to.have.property(\"home_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"available_balance\");",
+							"    pm.expect(jsonData).to.have.property(\"alias\");",
+							"    pm.expect(jsonData).to.have.property(\"state\", true);",
+							"});",
+							"",
+							"pm.test(\"home_balance === available_balance (simple)\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.available_balance).to.eql(jsonData.home_balance);",
+							"});",
+							"",
+							"pm.test(\"Save account ID to collection variable\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"",
+							"    pm.collectionVariables.set(\"ACCOUNT_ID\", jsonData.id);",
+							"    pm.collectionVariables.set(\"ACCOUNT_NUMBER\", jsonData.number);",
+							"    pm.collectionVariables.set(\"ACCOUNT_AVAILABLE_AMOUNT\", jsonData.available_balance);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\": \"{{CLIENT_ID}}\",\n    \"number\": \"{{randomAccountNumber}}\",\n    \"type\": \"{{randomAccountType}}\",\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"home_balance\": \"{{randomBalance}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create WITHDRAWAL movement (Validate available balance)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generar execution date",
+							"const now = new Date();",
+							"function toLocalDateTime(date) {",
+							"    return date.getFullYear() + \"-\" +",
+							"        String(date.getMonth() + 1).padStart(2, '0') + \"-\" +",
+							"        String(date.getDate()).padStart(2, '0') + \"T\" +",
+							"        String(date.getHours()).padStart(2, '0') + \":\" +",
+							"        String(date.getMinutes()).padStart(2, '0') + \":\" +",
+							"        String(date.getSeconds()).padStart(2, '0');",
+							"}",
+							"pm.environment.set(\"localDateTimeNow\", toLocalDateTime(now));",
+							"",
+							"// Generar un momnto superio al balance disponible de la cuenta para generar error",
+							"const v = pm.collectionVariables.get(\"ACCOUNT_AVAILABLE_AMOUNT\");",
+							"if (!v) throw new Error(\"ACCOUNT_AVAILABLE_AMOUNT no definida\");",
+							"const n = parseFloat(String(v).replace(/,/g, ''));",
+							"pm.collectionVariables.set(\"randomAmount\", String(n * 2));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Response contains errors array\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"errors\");",
+							"    pm.expect(jsonData.errors).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"pm.test(\"Error code is 'account.balance.notAvailable'\", function () {",
+							"    const error = pm.response.json().errors[0];",
+							"    pm.expect(error.code).to.eql(\"account.balance.notAvailable\");",
+							"});",
+							"",
+							"pm.test(\"Error title is 'Balance not available'\", function () {",
+							"    const error = pm.response.json().errors[0];",
+							"    pm.expect(error.title).to.eql(\"Balance not available\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_id\": \"{{ACCOUNT_ID}}\",\n    \"execution_date\": \"{{localDateTimeNow}}\",\n    \"type\": \"WITHDRAWAL\",\n    \"amount\": \"{{randomAmount}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/movements",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create DEPOSIT movement",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta aleatorio",
+							"const movementTypes = [\"DEPOSIT\", \"WITHDRAWAL\"];",
+							"const movementType = movementTypes[Math.floor(Math.random() * movementTypes.length)];",
+							"pm.variables.set(\"randomMovementType\", movementType);",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"pm.variables.set(\"randomAmount\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Generar execution date",
+							"const now = new Date();",
+							"function toLocalDateTime(date) {",
+							"    return date.getFullYear() + \"-\" +",
+							"        String(date.getMonth() + 1).padStart(2, '0') + \"-\" +",
+							"        String(date.getDate()).padStart(2, '0') + \"T\" +",
+							"        String(date.getHours()).padStart(2, '0') + \":\" +",
+							"        String(date.getMinutes()).padStart(2, '0') + \":\" +",
+							"        String(date.getSeconds()).padStart(2, '0');",
+							"}",
+							"pm.environment.set(\"localDateTimeNow\", toLocalDateTime(now));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Response has all required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    const expectedFields = [",
+							"        \"id\",",
+							"        \"number\",",
+							"        \"balance_before\",",
+							"        \"amount\",",
+							"        \"after_before\",",
+							"        \"execution_date\"",
+							"    ];",
+							"",
+							"    expectedFields.forEach(field => {",
+							"        pm.expect(jsonData).to.have.property(field);",
+							"    });",
+							"});",
+							"",
+							"pm.test(\"Field types are correct\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData.id).to.be.a(\"string\");",
+							"    pm.expect(jsonData.number).to.be.a(\"string\");",
+							"    pm.expect(jsonData.balance_before).to.be.a(\"number\");",
+							"    pm.expect(jsonData.amount).to.be.a(\"number\");",
+							"    pm.expect(jsonData.after_before).to.be.a(\"number\");",
+							"    pm.expect(jsonData.execution_date).to.be.a(\"string\"); // formato ISO",
+							"});",
+							"",
+							"pm.test(\"execution_date is a valid ISO-8601 date\", function () {",
+							"    const dateStr = pm.response.json().execution_date;",
+							"    const iso8601Regex = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/;",
+							"    pm.expect(dateStr).to.match(iso8601Regex);",
+							"});",
+							"",
+							"pm.test(\"Save movement ID to collection variable\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"",
+							"    pm.collectionVariables.set(\"MOVEMENT_ID\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_id\": \"{{ACCOUNT_ID}}\",\n    \"execution_date\": \"{{localDateTimeNow}}\",\n    \"type\": \"DEPOSIT\",\n    \"amount\": \"{{randomAmount}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/movements",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create DEPOSIT movement (Account not found)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta aleatorio",
+							"const movementTypes = [\"DEPOSIT\", \"WITHDRAWAL\"];",
+							"const movementType = movementTypes[Math.floor(Math.random() * movementTypes.length)];",
+							"pm.variables.set(\"randomMovementType\", movementType);",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"pm.variables.set(\"randomAmount\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Generar execution date",
+							"const now = new Date();",
+							"function toLocalDateTime(date) {",
+							"    return date.getFullYear() + \"-\" +",
+							"        String(date.getMonth() + 1).padStart(2, '0') + \"-\" +",
+							"        String(date.getDate()).padStart(2, '0') + \"T\" +",
+							"        String(date.getHours()).padStart(2, '0') + \":\" +",
+							"        String(date.getMinutes()).padStart(2, '0') + \":\" +",
+							"        String(date.getSeconds()).padStart(2, '0');",
+							"}",
+							"pm.collectionVariables.set(\"CURRENT_NOW\", toLocalDateTime(now));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_id\": \"ANY\",\n    \"execution_date\": \"{{CURRENT_NOW}}\",\n    \"type\": \"DEPOSIT\",\n    \"amount\": \"{{randomAmount}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/movements",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create movement (Required)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Response contains errors array\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"errors\");",
+							"    pm.expect(jsonData.errors).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"pm.test(\"There are exactly 4 errors\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.errors.length).to.eql(4);",
+							"});",
+							"",
+							"pm.test(\"Each error has code, title, detail and field\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    jsonData.errors.forEach(err => {",
+							"        pm.expect(err).to.have.property(\"code\");",
+							"        pm.expect(err).to.have.property(\"title\");",
+							"        pm.expect(err).to.have.property(\"detail\");",
+							"        pm.expect(err).to.have.property(\"field\");",
+							"    });",
+							"});",
+							"",
+							"pm.test(\"All expected error codes are present\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    const expectedCodes = [",
+							"        \"movement.type.null\",",
+							"        \"movement.date.notNull\",",
+							"        \"movement.amount.null\",",
+							"        \"account.id.notBlank\"",
+							"    ];",
+							"    const actualCodes = jsonData.errors.map(err => err.code);",
+							"    expectedCodes.forEach(code => {",
+							"        pm.expect(actualCodes).to.include(code);",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/movements",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements"
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get movement detail",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta aleatorio",
+							"const movementTypes = [\"DEPOSIT\", \"WITHDRAWAL\"];",
+							"const movementType = movementTypes[Math.floor(Math.random() * movementTypes.length)];",
+							"pm.variables.set(\"randomMovementType\", movementType);",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"pm.variables.set(\"randomAmount\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Generar execution date",
+							"const now = new Date();",
+							"function toLocalDateTime(date) {",
+							"    return date.getFullYear() + \"-\" +",
+							"        String(date.getMonth() + 1).padStart(2, '0') + \"-\" +",
+							"        String(date.getDate()).padStart(2, '0') + \"T\" +",
+							"        String(date.getHours()).padStart(2, '0') + \":\" +",
+							"        String(date.getMinutes()).padStart(2, '0') + \":\" +",
+							"        String(date.getSeconds()).padStart(2, '0');",
+							"}",
+							"pm.environment.set(\"localDateTimeNow\", toLocalDateTime(now));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has all required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    const expectedFields = [",
+							"        \"id\",",
+							"        \"number\",",
+							"        \"balance_before\",",
+							"        \"amount\",",
+							"        \"after_before\",",
+							"        \"execution_date\"",
+							"    ];",
+							"",
+							"    expectedFields.forEach(field => {",
+							"        pm.expect(jsonData).to.have.property(field);",
+							"    });",
+							"});",
+							"",
+							"pm.test(\"Field types are correct\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData.id).to.be.a(\"string\");",
+							"    pm.expect(jsonData.number).to.be.a(\"string\");",
+							"    pm.expect(jsonData.balance_before).to.be.a(\"number\");",
+							"    pm.expect(jsonData.amount).to.be.a(\"number\");",
+							"    pm.expect(jsonData.after_before).to.be.a(\"number\");",
+							"    pm.expect(jsonData.execution_date).to.be.a(\"string\"); // formato ISO",
+							"});",
+							"",
+							"pm.test(\"execution_date is a valid ISO-8601 date\", function () {",
+							"    const dateStr = pm.response.json().execution_date;",
+							"    const iso8601Regex = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/;",
+							"    pm.expect(dateStr).to.match(iso8601Regex);",
+							"});",
+							"",
+							"pm.test(\"Save movement ID to collection variable\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"",
+							"    pm.collectionVariables.set(\"MOVEMENT_ID\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/movements/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{MOVEMENT_ID}}"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get movement detail (not found)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Tipos de cuenta aleatorio",
+							"const movementTypes = [\"DEPOSIT\", \"WITHDRAWAL\"];",
+							"const movementType = movementTypes[Math.floor(Math.random() * movementTypes.length)];",
+							"pm.variables.set(\"randomMovementType\", movementType);",
+							"",
+							"// Generar decimales para balance",
+							"function getRandomBalance(min, max, decimals) {",
+							"    const str = (Math.random() * (max - min) + min).toFixed(decimals);",
+							"    return parseFloat(str);",
+							"}",
+							"pm.variables.set(\"randomAmount\", getRandomBalance(100, 100000, 5));",
+							"",
+							"// Generar execution date",
+							"const now = new Date();",
+							"function toLocalDateTime(date) {",
+							"    return date.getFullYear() + \"-\" +",
+							"        String(date.getMonth() + 1).padStart(2, '0') + \"-\" +",
+							"        String(date.getDate()).padStart(2, '0') + \"T\" +",
+							"        String(date.getHours()).padStart(2, '0') + \":\" +",
+							"        String(date.getMinutes()).padStart(2, '0') + \":\" +",
+							"        String(date.getSeconds()).padStart(2, '0');",
+							"}",
+							"pm.environment.set(\"localDateTimeNow\", toLocalDateTime(now));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/movements/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"movements",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "ANY"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Report",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Leer la variable base",
+							"const currentNow = pm.collectionVariables.get(\"CURRENT_NOW\");",
+							"if (!currentNow) throw new Error(\"La variable CURRENT_NOW no está definida\");",
+							"",
+							"// Parsear a Date",
+							"const base = new Date(currentNow);",
+							"",
+							"// FROM_DATE = 10 días antes",
+							"const fromDate = new Date(base);",
+							"fromDate.setDate(fromDate.getDate() - 10);",
+							"",
+							"// TO_DATE = 10 días después",
+							"const toDate = new Date(base);",
+							"toDate.setDate(toDate.getDate() + 10);",
+							"",
+							"// Guardar en variables de colección (formato ISO)",
+							"pm.collectionVariables.set(\"FROM_DATE\", fromDate.toISOString());",
+							"pm.collectionVariables.set(\"TO_DATE\", toDate.toISOString());",
+							"",
+							"// Opcional: debug en consola",
+							"console.log(\"FROM_DATE:\", fromDate.toISOString());",
+							"console.log(\"TO_DATE:\", toDate.toISOString());",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Helper: verificar si un valor es numérico (acepta strings con comas)",
+							"function isNumeric(v) {",
+							"    if (v === null || v === undefined) return false;",
+							"    const n = parseFloat(String(v).replace(/,/g, ''));",
+							"    return !Number.isNaN(n) && isFinite(n);",
+							"}",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"clientId\");",
+							"    pm.expect(jsonData).to.have.property(\"name\");",
+							"    pm.expect(jsonData).to.have.property(\"accounts\");",
+							"});",
+							"",
+							"pm.test(\"accounts is array\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(Array.isArray(jsonData.accounts)).to.be.true;",
+							"    pm.expect(jsonData.accounts.length).to.be.at.least(1);",
+							"});",
+							"",
+							"pm.test(\"Validate account response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    const accounts = jsonData.accounts;",
+							"",
+							"    accounts.forEach(function (acc, idx) {",
+							"        pm.expect(acc).to.be.an(\"object\", `account index ${idx} debe ser objeto`);",
+							"        pm.expect(acc).to.have.property(\"accountNumber\");",
+							"        pm.expect(acc).to.have.property(\"accountType\");",
+							"        pm.expect(acc).to.have.property(\"initialBalance\");",
+							"        pm.expect(acc).to.have.property(\"availableBalance\");",
+							"        pm.expect(acc).to.have.property(\"movements\");",
+							"",
+							"        // initialBalance y availableBalance deben ser numéricos (o strings numéricos)",
+							"        pm.expect(isNumeric(acc.initialBalance)).to.be.true;",
+							"        pm.expect(isNumeric(acc.availableBalance)).to.be.true;",
+							"",
+							"        // movements debe ser array con al menos 1 elemento",
+							"        pm.expect(Array.isArray(acc.movements)).to.be.true;",
+							"        pm.expect(acc.movements.length).to.be.at.least(1);",
+							"    });",
+							"});",
+							"",
+							"pm.test(\"RValidate movements fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    const accounts = jsonData.accounts;",
+							"",
+							"    accounts.forEach(function (acc, aIdx) {",
+							"        acc.movements.forEach(function (m, mIdx) {",
+							"            pm.expect(m).to.be.an(\"object\", `movement ${mIdx} en account ${aIdx} debe ser objeto`);",
+							"            pm.expect(m).to.have.property(\"date\");",
+							"            pm.expect(m).to.have.property(\"type\");",
+							"            pm.expect(m).to.have.property(\"beforeBalance\");",
+							"            pm.expect(m).to.have.property(\"amount\");",
+							"            pm.expect(m).to.have.property(\"afterBalance\");",
+							"",
+							"            // validar tipos básicos / numéricos",
+							"            pm.expect(typeof m.date === \"string\" && m.date.length > 0).to.be.true;",
+							"            pm.expect(typeof m.type === \"string\" && m.type.length > 0).to.be.true;",
+							"            pm.expect(isNumeric(m.beforeBalance)).to.be.true;",
+							"            pm.expect(isNumeric(m.amount)).to.be.true;",
+							"            pm.expect(isNumeric(m.afterBalance)).to.be.true;",
+							"        });",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{accountApiUrl}}/reports?from_date={{FROM_DATE}}&to_date={{TO_DATE}}&client=XAXX010101000",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"reports"
+					],
+					"query": [
+						{
+							"key": "from_date",
+							"value": "{{FROM_DATE}}"
+						},
+						{
+							"key": "to_date",
+							"value": "{{TO_DATE}}"
+						},
+						{
+							"key": "client",
+							"value": "XAXX010101000"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Fake",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"alias\": \"{{randomAccountAlias}}\",\n    \"state\": false\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accountApiUrl}}/accounts/:id",
+					"host": [
+						"{{accountApiUrl}}"
+					],
+					"path": [
+						"accounts",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{ACCOUNT_NEW_ID}}"
+						}
+					]
+				},
+				"description": "Register a new customer"
+			},
+			"response": [
+				{
+					"name": "Customer successfully registered",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"encrypted_password\": \"<string>\",\n  \"gender\": \"<string>\",\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"state\": \"<boolean>\",\n  \"age\": \"<integer>\",\n  \"phone\": \"7031264773\"\n}"
+				},
+				{
+					"name": "Something in the request was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"errors\": [\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    },\n    {\n      \"code\": \"<string>\",\n      \"detail\": \"<string>\",\n      \"title\": \"<string>\",\n      \"field\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Unauthorized.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Resource forbidden.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				},
+				{
+					"name": "Some ID you requested was not found.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				},
+				{
+					"name": "Something in the server was wrong.",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"<string>\",\n  \"client_id\": \"<string>\",\n  \"gender\": \"OTHER\",\n  \"name\": \"<string>\",\n  \"password\": \"{f8x2\\\\u<WgL\",\n  \"age\": \"<integer>\",\n  \"phone\": \"+1794132865087\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"<string>\"\n}"
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "CUSTOMER_ID",
+			"value": ""
+		},
+		{
+			"key": "CUSTOMER_CLIENT_ID",
+			"value": ""
+		},
+		{
+			"key": "ACCOUNT_ID",
+			"value": ""
+		},
+		{
+			"key": "ACCOUNT_NUMBER",
+			"value": ""
+		},
+		{
+			"key": "ACCOUNT_NEW_ID",
+			"value": ""
+		},
+		{
+			"key": "MOVEMENT_ID",
+			"value": ""
+		},
+		{
+			"key": "ACCOUNT_AVAILABLE_AMOUNT",
+			"value": ""
+		},
+		{
+			"key": "randomAmount",
+			"value": ""
+		},
+		{
+			"key": "CURRENT_NOW",
+			"value": ""
+		},
+		{
+			"key": "FROM_DATE",
+			"value": ""
+		},
+		{
+			"key": "TO_DATE",
+			"value": ""
+		}
+	]
+}

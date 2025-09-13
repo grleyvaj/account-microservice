@@ -1,0 +1,585 @@
+openapi: 3.0.1
+info:
+  title: ACCOUNT MICROSERVICE
+  description: Microservice for manage account and it's movements
+  contact:
+    name: Support Team
+    email: leyvajerezgr@gmail.com
+  version: 0.0.1-SNAPSHOT
+servers:
+  - url: http://localhost:8082
+    description: Develop server
+  - url: http://localhost:8082
+    description: UAT server
+  - url: http://localhost:8082
+    description: Production server
+tags:
+  - name: Account
+    description: API for managing account information
+  - name: Reports
+    description: API for generate reports
+  - name: Movement
+    description: API for managing movement information
+paths:
+  /movements:
+    post:
+      tags:
+        - Movement
+      summary: Crear un movimiento
+      description: Adicionar un movimiento en una cuenta dada
+      operationId: createMovement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Movimiento registrado satisfactoriamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementDetailResponse'
+        '400':
+          description: Something in the request was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponseList'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '404':
+          description: Some ID you requested was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /accounts:
+    get:
+      tags:
+        - Account
+      summary: Get active accounts of a customer
+      description: Retrieve all active accounts associated with a specific customer by ID
+      operationId: getActives
+      parameters: []
+      responses:
+        '200':
+          description: List of active accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountListResponse'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Account
+      summary: Create account
+      description: Create a new account for a customer
+      operationId: createAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+        '400':
+          description: Something in the request was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponseList'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '404':
+          description: Some ID you requested was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /accounts/{id}:
+    get:
+      tags:
+        - Account
+      summary: Get account details
+      description: Retrieve detailed information for a specific account by ID
+      operationId: getDetailAccount
+      parameters:
+        - name: id
+          in: path
+          description: Account identifier
+          required: true
+          schema:
+            type: string
+            format: ulid
+            example: 01HZX0SYT8P7TQ2J0GKH2HF26R
+      responses:
+        '200':
+          description: Account details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '404':
+          description: Some ID you requested was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+        - Account
+      summary: Update account
+      description: Update an existing account by ID
+      operationId: updateAccount
+      parameters:
+        - name: id
+          in: path
+          description: Account identifier
+          required: true
+          schema:
+            type: string
+            format: ulid
+            example: 01HZX0SYT8P7TQ2J0GKH2HF26R
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountUpdateRequest'
+        required: true
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+        '400':
+          description: Something in the request was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponseList'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '404':
+          description: Some ID you requested was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reports:
+    get:
+      tags:
+        - Reports
+      summary: Account report
+      description: Retrieve a report of account transactions and balances
+      operationId: getAccountReport
+      parameters:
+        - name: client
+          in: query
+          description: Identification of client
+          required: true
+          schema:
+            type: string
+            format: ulid
+            example: 01K4W28848S15638N34TT76CPT
+          example: 01K4W28848S15638N34TT76CPT
+        - name: from_date
+          in: query
+          description: Start datetime filter
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: '2025-04-01T10:15:30'
+        - name: to_date
+          in: query
+          description: End datetime filter
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: '2025-04-30T10:15:30'
+      responses:
+        '200':
+          description: Account report generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientReport'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /movements/{id}:
+    get:
+      tags:
+        - Movement
+      summary: Obtener detalles del movimiento
+      description: Recupera información detallada de un movimiento específico por su ID
+      operationId: getDetailMovement
+      parameters:
+        - name: id
+          in: path
+          description: Movement identifier
+          required: true
+          schema:
+            type: string
+            format: ulid
+            example: 01HZX0SYT8P7TQ2J0GKH2HF26R
+      responses:
+        '200':
+          description: Movimiento recuperado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementDetailResponse'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Resource forbidden.
+        '404':
+          description: Some ID you requested was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something in the server was wrong.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    MovementCreateRequest:
+      required:
+        - account_id
+        - amount
+        - execution_date
+        - type
+      type: object
+      properties:
+        account_id:
+          type: string
+          description: Account identifier
+          example: 01K4W1YEHEGR40R0E09GT8TYG6
+        execution_date:
+          type: string
+          description: Execution date of the movement
+          format: date-time
+          example: '2025-09-11T18:30:00Z'
+        type:
+          type: string
+          description: Movement type
+          example: WITHDRAWAL
+          enum:
+            - DEPOSIT
+            - WITHDRAWAL
+        amount:
+          type: number
+          description: Movement amount
+          example: 12345.12345
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error description message
+          example: Resource not found
+    ValidationErrorResponse:
+      required:
+        - code
+        - detail
+        - title
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field with error.
+          example: projectId
+        code:
+          type: string
+          description: Error code identifying the problem occurred.
+          example: projectId.notFound
+        title:
+          type: string
+          description: Summary of the problem occurred.
+          example: Project not found
+        detail:
+          type: string
+          description: Message describing what problem has occurred.
+          example: The Project ID you requested was not found.
+    ValidationErrorResponseList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+    MovementDetailResponse:
+      required:
+        - after_before
+        - amount
+        - balance_before
+        - execution_date
+        - id
+        - number
+      type: object
+      properties:
+        id:
+          type: string
+          description: Movement identifier
+          example: 01K4SA5VMMYFDQM9C145SZGPW5
+        number:
+          type: string
+          description: Movement description
+          example: Withdrawal of 500.000
+        balance_before:
+          type: number
+          description: Account balance before applying the transaction
+          example: 1000
+        amount:
+          type: number
+          description: Movement amount
+          example: 500
+        after_before:
+          type: number
+          description: Account balance after applying the transaction
+          example: 500
+        execution_date:
+          type: string
+          description: Execution date of the movement
+          format: date-time
+          example: '2025-09-11T18:30:00Z'
+    AccountCreateRequest:
+      required:
+        - client_id
+        - home_balance
+        - number
+        - type
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Identification of client
+          example: 01K4W1YEHEGR40R0E09GT8TYG6
+        number:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's number
+          example: ASDFEERT
+        type:
+          type: string
+          description: 'Account type: `SAVINGS` or `CURRENT`'
+          example: SAVINGS
+          enum:
+            - SAVINGS
+            - CURRENT
+        home_balance:
+          type: number
+          description: Home balance, max 15 integer digits and 5 decimals
+          example: 12345.12345
+        alias:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's alias
+          example: Mis ahorros
+    AccountDetailResponse:
+      required:
+        - available_balance
+        - customer
+        - home_balance
+        - id
+        - number
+        - state
+        - type
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: 01K4SA5VMMYFDQM9C145SZGPW5
+        customer:
+          type: string
+          description: Customer name
+          example: Jose Lema
+        number:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's number
+          example: ASDFEERT
+        type:
+          type: string
+          description: 'Account type: `SAVINGS` or `CURRENT`'
+          example: SAVINGS
+        home_balance:
+          type: number
+          description: Home balance, max 15 integer digits and 5 decimals
+          example: 12345.12345
+        available_balance:
+          type: number
+          description: Available balance, max 15 integer digits and 5 decimals
+          example: 12345.12345
+        alias:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's alias
+          example: Mis ahorros
+        state:
+          type: boolean
+          description: Account state
+          example: true
+    AccountUpdateRequest:
+      type: object
+      properties:
+        alias:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's alias
+          example: Mis ahorros
+        state:
+          type: boolean
+          description: Account state
+          example: true
+    AccountReport:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+        accountType:
+          type: string
+        initialBalance:
+          type: number
+        availableBalance:
+          type: number
+        movements:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovementReport'
+    ClientReport:
+      type: object
+      properties:
+        clientId:
+          type: string
+        name:
+          type: string
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountReport'
+    MovementReport:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+        beforeBalance:
+          type: number
+        amount:
+          type: number
+        afterBalance:
+          type: number
+    AccountListResponse:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountSummaryResponse'
+    AccountSummaryResponse:
+      required:
+        - available_balance
+        - home_balance
+        - number
+        - type
+      type: object
+      properties:
+        number:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's number
+          example: ASDFEERT
+        type:
+          type: string
+          description: 'Account type: `SAVINGS` or `CURRENT`'
+          example: SAVINGS
+        home_balance:
+          type: number
+          description: Home balance, max 15 integer digits and 5 decimals
+          example: 12345.12345
+        available_balance:
+          type: number
+          description: Available balance, max 15 integer digits and 5 decimals
+          example: 12345.12345
+        alias:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Account's alias
+          example: Mis ahorros

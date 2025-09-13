@@ -2,8 +2,8 @@ package com.devsu.account_service.infrastructure.postgres;
 
 import com.devsu.account_service.domain.models.Customer;
 import com.devsu.account_service.domain.repository.CustomerRepository;
-import com.devsu.account_service.domain.repository.CustomerUpsertInput;
 import com.devsu.account_service.domain.use_cases.customer.create.CustomerCreateInput;
+import com.devsu.account_service.domain.use_cases.customer.update.CustomerUpdateInput;
 import com.devsu.account_service.infrastructure.entity.CustomerEntity;
 import com.devsu.account_service.infrastructure.persistence.JpaCustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +38,15 @@ public class PostgresCustomerRepository implements CustomerRepository {
 	}
 
 	@Override
-	public void update(CustomerUpsertInput createInput) {
-		CustomerEntity entity = new CustomerEntity();
-		entity.setClientId(createInput.getClientId());
-		entity.setName(createInput.getName());
-		entity.setCreatedAt(createInput.getCreatedAt());
-		entity.setUpdatedAt(createInput.getCreatedAt());
-		this.jpaCustomerRepository.save(entity);
+	public void update(CustomerUpdateInput updateInput) {
+		this.jpaCustomerRepository
+		  .findByClientIdAndIsDeletedFalse(updateInput.getClientId())
+		  .ifPresent(entity -> {
+			  entity.setName(updateInput.getName());
+			  entity.setCreatedAt(updateInput.getCreatedAt());
+			  entity.setUpdatedAt(updateInput.getUpdatedAt());
+			  this.jpaCustomerRepository.save(entity);
+		  });
 	}
 
 	@Override

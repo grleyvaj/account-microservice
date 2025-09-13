@@ -12,7 +12,6 @@ public class PostgresCustomerRepository implements CustomerRepository {
 
 	private final JpaCustomerRepository jpaCustomerRepository;
 
-
 	@Override
 	public boolean existsByClientId(String clientId) {
 		return this.jpaCustomerRepository.existsByClientIdAndIsDeletedFalse(clientId);

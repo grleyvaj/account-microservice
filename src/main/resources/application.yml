@@ -23,8 +23,11 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
-#  config:
-#    import: optional:classpath:${OPENAPI_LANGUAGE:i18n/swagger_messages.properties}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:172.17.0.2}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 openapi:
   servers:
@@ -52,3 +55,22 @@ spring-doc:
     displayRequestDuration: true
     tagsSorter: alpha
     resolve-schema-properties: true
+
+messaging:
+  customer:
+    exchange: customer.exchange
+    created:
+      queue: customer.created.queue
+      routingKey: customer.created
+    updated:
+      queue: customer.updated.queue
+      routingKey: customer.updated
+    deleted:
+      queue: customer.deleted.queue
+      routingKey: customer.deleted
+
+#logging:
+#  level:
+#    org.springframework.amqp: DEBUG
+#    com.rabbitmq.client: DEBUG
+#    org.springframework: DEBUG

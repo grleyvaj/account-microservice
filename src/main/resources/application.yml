@@ -31,11 +31,11 @@ spring:
 
 openapi:
   servers:
-    - url: http://localhost:${ENV_PORT:8082}
+    - url: http://${DB_HOST:localhost}:${ENV_PORT:8082}
       description: Develop server
-    - url: http://staging:${ENV_PORT:8082}
+    - url: http://${DB_SANDBOX_HOST:localhost}:${ENV_PORT:8082}
       description: UAT server
-    - url: http://prod:${ENV_PORT:8082}
+    - url: http://${DB_PROD_HOST:localhost}:${ENV_PORT:8082}
       description: Production server
   info:
     title: ACCOUNT MICROSERVICE

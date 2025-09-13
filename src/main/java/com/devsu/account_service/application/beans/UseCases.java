@@ -7,6 +7,9 @@ import com.devsu.account_service.domain.use_cases.account.create.AccountCreateUs
 import com.devsu.account_service.domain.use_cases.account.detail.AccountDetailUseCase;
 import com.devsu.account_service.domain.use_cases.account.list.AccountActivesUseCase;
 import com.devsu.account_service.domain.use_cases.account.update.AccountUpdateUseCase;
+import com.devsu.account_service.domain.use_cases.customer.create.CustomerCreateUseCase;
+import com.devsu.account_service.domain.use_cases.customer.delete.CustomerDeleteUseCase;
+import com.devsu.account_service.domain.use_cases.customer.update.CustomerUpdateUseCase;
 import com.devsu.account_service.domain.use_cases.movement.create.MovementCreateUseCase;
 import com.devsu.account_service.domain.use_cases.movement.detail.MovementDetailUseCase;
 import com.devsu.account_service.domain.use_cases.report.ClientReportUseCase;
@@ -65,4 +68,20 @@ public class UseCases {
 		  movementRepository
 		);
 	}
+
+	@Bean
+	public CustomerCreateUseCase customerCreateUseCase(CustomerRepository customerRepository) {
+		return new CustomerCreateUseCase(customerRepository);
+	}
+
+	@Bean
+	public CustomerUpdateUseCase customerUpdateUseCase(CustomerRepository customerRepository) {
+		return new CustomerUpdateUseCase(customerRepository);
+	}
+
+	@Bean
+	public CustomerDeleteUseCase customerDeleteUseCase(CustomerRepository customerRepository) {
+		return new CustomerDeleteUseCase(customerRepository);
+	}
+
 }

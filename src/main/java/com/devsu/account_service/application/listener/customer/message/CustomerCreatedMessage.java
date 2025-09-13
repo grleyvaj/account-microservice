@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -18,7 +17,7 @@ public class CustomerCreatedMessage implements Serializable {
 	@JsonProperty("name")
 	private final String name;
 
-	//	@JsonProperty("created_at")
-	//	private final LocalDateTime created_at;
+	@JsonProperty("created_at")
+	private final LocalDateTime createdAt;
 
 }

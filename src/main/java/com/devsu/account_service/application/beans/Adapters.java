@@ -16,12 +16,18 @@ import com.devsu.account_service.application.controller.movement.detail.Movement
 import com.devsu.account_service.application.controller.movement.detail.MovementDetailResponseMapper;
 import com.devsu.account_service.application.controller.pagination.response.PageResponse;
 import com.devsu.account_service.application.controller.pagination.response.PageResponseMapper;
+import com.devsu.account_service.application.listener.customer.message.CustomerCreatedInputMapper;
+import com.devsu.account_service.application.listener.customer.message.CustomerCreatedMessage;
+import com.devsu.account_service.application.listener.customer.message.CustomerUpdatedInputMapper;
+import com.devsu.account_service.application.listener.customer.message.CustomerUpdatedMessage;
 import com.devsu.account_service.domain.models.Account;
 import com.devsu.account_service.domain.models.AccountInfo;
 import com.devsu.account_service.domain.models.Movement;
 import com.devsu.account_service.domain.pagination.Pagination;
 import com.devsu.account_service.domain.use_cases.account.create.AccountCreateInput;
 import com.devsu.account_service.domain.use_cases.account.update.AccountUpdateInput;
+import com.devsu.account_service.domain.use_cases.customer.create.CustomerCreateInput;
+import com.devsu.account_service.domain.use_cases.customer.update.CustomerUpdateInput;
 import com.devsu.account_service.domain.use_cases.movement.create.MovementCreateInput;
 import com.devsu.account_service.infrastructure.entity.*;
 import org.springframework.context.annotation.Bean;
@@ -95,6 +101,16 @@ public class Adapters {
 	  Mapper<Account, AccountSummaryResponse> accountSummaryResponseMapper
 	) {
 		return new ListMapper<>(accountSummaryResponseMapper);
+	}
+
+	@Bean
+	public Mapper<CustomerCreatedMessage, CustomerCreateInput> customerCreateInputMapper() {
+		return new CustomerCreatedInputMapper();
+	}
+
+	@Bean
+	public Mapper<CustomerUpdatedMessage, CustomerUpdateInput> customerUpdateInputMapper() {
+		return new CustomerUpdatedInputMapper();
 	}
 
 }
